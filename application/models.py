@@ -22,16 +22,6 @@ class Patient(db.Model):
     city = db.Column(db.String(64))
     state = db.Column(db.String(64))
     status = db.Column(db.String(64))
-    medicines = db.relationship('Address', backref='person', lazy=True)
-
-
-class MedicineCount(db.Model):
-    __tablename__ = "medicine_track_data"
-    patient_id = db.Column(db.Integer(), db.ForeignKey('patients.patient_id'))
-    patients = db.relationship("Patient", foreign_keys=[patient_id])
-    medicine_id = db.Column(db.Integer(), db.ForeignKey("medicine.medicine_id"))
-    medicine = db.relationship("Medicine", foreign_key=[medicine_id])
-    issue_count = db.Column(db.Integer())
 
 
 class Medicine(db.Model):
@@ -40,6 +30,16 @@ class Medicine(db.Model):
     medicine_name = db.Column(db.String(64), unique=True)
     quantity_available = db.Column(db.Integer())
     price = db.Column(db.Integer())
+
+
+class MedicineCount(db.Model):
+    __tablename__ = "medicine_track_data"
+    id = db.Column(db.Integer(), primary_key=True)
+    patient_id = db.Column(db.Integer(), db.ForeignKey('patients.patient_id'))
+    patients = db.relationship("Patient")
+    medicine_id = db.Column(db.Integer(), db.ForeignKey("medicine.medicine_id"))
+    medicine = db.relationship("Medicine")
+    issue_count = db.Column(db.Integer())
 
 
 class Diagnostics(db.Model):
@@ -51,7 +51,8 @@ class Diagnostics(db.Model):
 
 class PatientDiagnostics(db.Model):
     __tablename__ = "patient_diagnostics"
+    id = db.Column(db.Integer(), primary_key=True)
     patient_id = db.Column(db.Integer(), db.ForeignKey('patients.patient_id'))
-    patients = db.relationship("Patient", foreign_key=[patient_id])
+    patients = db.relationship("Patient")
     diagnostics_conducted = db.Column(db.Integer(), db.ForeignKey('diagnostics.diagnostics_id'))
-    diagnostics = db.relationship("Diagnostics", foreign_key=[diagnostics_conducted])
+    diagnostics = db.relationship("Diagnostics")
