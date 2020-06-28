@@ -1,0 +1,4 @@
+myenv/
+.idea
+__pycache__/
+application/__pycache__
