@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block page_content %}
+{% for catg,msg in get_flashed_messages(with_categories=true) %}
+ <div class="alert alert-{{ catg }}" role="alert">
+   <button type="button" class="close" data-dismiss="alert">&times;</button>
+   {{ msg }}
+ </div>
+ {% endfor %}
+ <fieldset>
+   <form class="form-horizontal action = "" method = "POST">
+     {{ form.csrf_token }} <!-- this is very important so that validate functions work in the view-->
+     {{ render_field(form.login) }}
+     {{ render_field(form.password ) }}
+     <input id="submit" class="btn btn-primary btn-lg center-block" name="{{ form.submit.name }}" type="submit" value="{{ form.submit.label.text }}">
+</form
+ </fieldset>
+
+ {% endblock %}
