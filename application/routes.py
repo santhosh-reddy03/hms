@@ -3,7 +3,7 @@ from flask import render_template, flash, redirect, request, url_for, jsonify, s
 from sqlalchemy import text
 from application.forms import LoginForm
 from application import db
-#from application.models import Customer, Accounts
+from application.models import Patient, Medicine, MedicineCount, Diagnostics, PatientDiagnostics
 import datetime
 from application.models import Userstore
 
@@ -13,7 +13,6 @@ db.session.add(Userstore(loginid='desk_executive', password='desk_executive', us
 db.session.add(Userstore(loginid='pharmacist', password='pharmacist', user_type='P'))
 db.session.add(Userstore(loginid='diagnostic', password='diagnostic', user_type='D'))
 db.session.commit()
-
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -45,6 +44,7 @@ def login():
                 return "<h1>diagnostic</h1>"
     return render_template('login.html', form=form, title='Login')
 
+
 @app.route('/logout')
 def logout():
     if 'user_id' in session:
@@ -53,15 +53,18 @@ def logout():
         flash('Logged out successfully ', 'success')
     return redirect(url_for('login'))
 
+
 @app.route('/create_patient')
 def create_patient():
     if 'user_id' in session and session['user_type'] == 'E':
-        #code here
+        # form = CreatePatient()
+        # code here
         return render_template('create_patient.html')
 
     else:
         flash('You are not logged in ', 'danger')
         return redirect(url_for('login'))
+
 
 @app.route('/update_patient')
 def update_patient():

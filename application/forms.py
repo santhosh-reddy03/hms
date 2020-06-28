@@ -9,3 +9,6 @@ class LoginForm(FlaskForm):
     login = StringField("Login Id", validators=[InputRequired()],render_kw={'Placeholder': 'Login Id'})
     password = PasswordField("Password", validators=[InputRequired()],render_kw={'Placeholder': 'Password'})
     submit = SubmitField("Login")
+
+
+# class CreatePatient(FlaskForm):
