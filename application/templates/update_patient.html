@@ -1,0 +1,20 @@
+{% extends "desk_executive_layout.html" %}
+
+{% block content %}
+<fieldset>
+  <form  class="form-horizontal" action = "" method = "POST">
+  {{ form.csrf_token }} <!-- this is very important so that validate functions work in the view-->
+    {{ render_field(form.patient_ssn) }}
+    {{ render_field(form.patient_name) }}
+    {{ render_field(form.age) }}
+    {{ render_field(form.doa) }}
+    {{ render_field(form.bed_type) }}
+    {{ render_field(form.address) }}
+    {{ render_field(form.state) }}
+    {{ render_field(form.city) }}
+    <input id="submit1" class="btn btn-primary btn-lg center-block" name="{{ form.get.name }}" type="submit" value="{{ form.get.label.text }}">
+    <input id="submit2" class="btn btn-primary btn-lg center-block"  name="{{ form.update.name }}" type="submit" value="{{ form.update.label.text }}">
+
+    </form>
+  </fieldset>
+ {% endblock %}

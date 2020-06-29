@@ -16,7 +16,7 @@ class Patient(db.Model):
     patient_id = db.Column(db.Integer(), primary_key=True, index=True)
     patient_name = db.Column(db.String(64))
     age = db.Column(db.Integer())
-    admission_date = db.Column(db.DateTime('YYYY-MM-DDTHH:MM:SS'))
+    admission_date = db.Column(db.Date())
     bed_type = db.Column(db.String(64))
     address = db.Column(db.String(64))
     city = db.Column(db.String(64))

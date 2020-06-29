@@ -1,10 +1,8 @@
 {% from "_render_field.html" import render_field %}
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<html lang="en">
   <head>
 
-<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="static/styles.css">
@@ -31,8 +29,14 @@
 
     <div class="container">
       <legend class=" text-center" style="font-size: 30px;"> {{ title }} </legend> <!--title of the page-->
-       {% block page_content %}
-       {% endblock %}
+       {% for catg,msg in get_flashed_messages(with_categories=true) %}
+        <div class="alert alert-{{ catg }}" role="alert">
+          <button type="button" class="close" data-dismiss="alert">&times;</button>
+          {{ msg }}
+        </div>
+        {% endfor %}
+        {% block content %}
+        {% endblock %}
     </div>
   </div>
 
