@@ -20,9 +20,10 @@
     </tbody>
 </table><br>
 
-    <h3>Medicines issued</h3>
+
 
 {% if data %}
+    <h3>Medicines issued</h3>
 <table class="table table-hover text-center">
     <thead>
     <tr>
@@ -44,8 +45,8 @@
     </tbody>
     </table>
  {% else %}
- <p>No meds were issued yet</p>
-    {% endif%}
+    <h3>No meds were issued</h3>
+    {% endif %}
 </div>
     <a href="{{ 'issue_meds/%s'%patient_data[0] }}"><button class="btn btn-primary center-block">Issue medicines</button></a>
 {% endblock %}

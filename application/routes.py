@@ -36,7 +36,7 @@ def login():
             session['user_id'] = form.login.data
             session['user_type'] = user_type[0]
             if user_type[0] == 'E':
-                return redirect(url_for('create_customer'))
+                return redirect(url_for('create_patient'))
             elif user_type[0] == 'P':
                 return redirect(url_for('pharmacist'))
             elif user_type[0] == 'D':
@@ -53,7 +53,7 @@ def logout():
     return redirect(url_for('login'))
 
 
-@app.route('/create_patient')
+@app.route('/create_patient', methods=["GET", "POST"])
 def create_patient():
     if 'user_id' in session and session['user_type'] == 'E':
         form = RegisterationForm()
@@ -131,12 +131,12 @@ def update_patient():
                     if not empty_field:                                 # empty field check necessary to ensure no fields are none while updating
                         sql = text('UPDATE patients SET patient_name = :n, age = :ag, admission_date = :doa, bed_type = :bt, address = :ad, state = :s, '
                                    'city = :c  WHERE patient_ssn = :ssn AND status = :state')
-                        rslt = db.engine.execute(sql, n=form.patient_name.data, ag=int(form.age.data), doa=form.doa.data, bt=form.bed_type.data,
+                        db.engine.execute(sql, n=form.patient_name.data, ag=int(form.age.data), doa=form.doa.data, bt=form.bed_type.data,
                                                  ad=form.address.data, s=form.state.data, c=form.city.data, ssn=form.patient_ssn.data, state='ACTIVE')
                         flash('Patient update initiated successfully', 'success')
-                        return redirect(url_for('update_patient'))       # successfull update
+                        return redirect(url_for('update_patient'))       # successful update
                     else:
-                        flash('Update uncsuccessful emppty fields found', 'warning')        # uncsuccessful update due to empty fields
+                        flash('Update unsuccessful empty fields found', 'warning')        # unsuccessful update due to empty fields
                         return redirect(url_for('update_patient'))
                 else:
                     flash('Please fill the fields using GET button then click on UPDATE button', 'warning')
@@ -164,7 +164,7 @@ def delete_patient():
 
                 elif form.delete.data and form.patient_name.data :          # to ensure get has been called
                     sql = text('UPDATE patients SET status = "INACTIVE" WHERE patient_ssn = :ssn AND status = :state')
-                    rslt = db.engine.execute(sql, ssn=form.patient_ssn.data, state='ACTIVE')
+                    db.engine.execute(sql, ssn=form.patient_ssn.data, state='ACTIVE')
                     flash('Patient deletion initiated successfully', 'success')
                     return redirect(url_for('delete_patient'))
                 else:
@@ -197,8 +197,11 @@ def search_patient():
 @app.route('/view_patient')
 def view_patient():
     if 'user_id' in session and session['user_type'] == 'E':
-        #code here
-        pass
+        # code here
+        rslt = db.engine.execute("SELECT patient_ssn,patient_name,age,address,admission_date,bed_type FROM patients WHERE status = 'ACTIVE' ")
+        patients = [row for row in rslt]
+        # print(patients)
+        return render_template('patient_table.html', rows=patients, title='View Patients')
 
     else:
         flash('You are not logged in ', 'danger')
@@ -232,7 +235,7 @@ def pharmacist():
             p_data = list(rslt1)
             if p_data:
                 patient_data = p_data[0]
-                flash("Patient and medicine data fount", "success")
+                flash("Patient and medicine data found", "success")
                 return render_template('pharma_details.html', data=data, title='Pharmacy', patient_data=patient_data)
             else:
                 flash("Patient not found", "danger")
@@ -267,14 +270,14 @@ def addmeds(patient_id=0, medicine_name='', quantity=0):
                 db.session.add(MedicineCount(patient_id=patient_id, medicine_id=medicine_id, issue_count=quantity))
                 db.session.commit()
                 data = {"medicinename": medicinename, "price": price, "quant": quantity}
-                sql = text("update medicine set quantity_avilable = :x where medicine_name = :y")
+                sql = text("update medicine set quantity_available = :x where medicine_name = :y")
                 db.engine.execute(sql, x=int(quant)-quantity, y=medicine_name)
                 return jsonify(data)
             else:
                 flash("Medicine are less in quantity, Please enter lower number", "warning")
                 return jsonify({"error": "stock not available"})
         else:
-            flash("Medicine doesn't exist", "danger")
+            # flash("Medicine doesn't exist", "danger")
             return jsonify({"error": "medicine doesnt exist"})
     else:
         return redirect(url_for('pharmacist'))
