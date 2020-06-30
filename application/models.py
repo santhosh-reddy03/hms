@@ -54,36 +54,3 @@ class PatientDiagnostics(db.Model):
     patients = db.relationship("Patient")
     diagnostics_conducted = db.Column(db.Integer(), db.ForeignKey('diagnostics.diagnostics_id'))
     diagnostics = db.relationship("Diagnostics")
-
-
-'''class MedicineCount(db.Model):
-    __tablename__ = "medicine_track_data"
-    patient_id = db.Column(db.Integer(), db.ForeignKey('patients.patient_id'))
-    patients = db.relationship("Patient", foreign_keys=[patient_id])
-    medicine_id = db.Column(db.Integer(), db.ForeignKey("medicine.medicine_id"))
-    medicine = db.relationship("Medicine", foreign_key=[medicine_id])
-    issue_count = db.Column(db.Integer())
-
-
-class Medicine(db.Model):
-    __tablename__ = "medicine"
-    medicine_id = db.Column(db.Integer(), primary_key=True)
-    medicine_name = db.Column(db.String(64), unique=True)
-    quantity_available = db.Column(db.Integer())
-    price = db.Column(db.Integer())
-
-
-class Diagnostics(db.Model):
-    __tablename__ = "diagnostics"
-    diagnostics_id = db.Column(db.Integer(), primary_key=True)
-    test_name = db.Column(db.String(64), unique=True)
-    charge = db.Column(db.Integer())
-
-
-class PatientDiagnostics(db.Model):
-    __tablename__ = "patient_diagnostics"
-    patient_id = db.Column(db.Integer(), db.ForeignKey('patients.patient_id'))
-    patients = db.relationship("Patient", foreign_key=[patient_id])
-    diagnostics_conducted = db.Column(db.Integer(), db.ForeignKey('diagnostics.diagnostics_id'))
-    diagnostics = db.relationship("Diagnostics", foreign_key=[diagnostics_conducted])
-'''

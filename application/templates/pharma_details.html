@@ -1,0 +1,51 @@
+{% extends "pharma_layout.html" %}
+{% block content %}
+<div class="row justify-content-center col-auto border-top-0">
+<table class="table table-hover text-center">
+    <thead>
+    <tr>
+        <th class="text-center">Patient ID</th>
+        <th class="text-center">Patient Name</th>
+        <th class="text-center">Age</th>
+        <th class="text-center">Address</th>
+        <th class="text-center">Date of admission</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr align="center">
+    {% for i in patient_data %}
+    <td>{{ i }}</td>
+    {% endfor %}
+    </tr>
+    </tbody>
+</table><br>
+
+    <h3>Medicines issued</h3>
+
+{% if data %}
+<table class="table table-hover text-center">
+    <thead>
+    <tr>
+        <th class="text-center">Medicine</th>
+        <th class="text-center">Quantity</th>
+        <th class="text-center">Rate</th>
+        <th class="text-center">Amount</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for i in data %}
+        <tr>
+            <td>{{i[0]}}</td>
+            <td>{{i[1]}}</td>
+            <td>{{i[2]}}</td>
+            <td>{{i[1]*i[2]}}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+ {% else %}
+ <p>No meds were issued yet</p>
+    {% endif%}
+</div>
+    <a href="{{ 'issue_meds/%s'%patient_data[0] }}"><button class="btn btn-primary center-block">Issue medicines</button></a>
+{% endblock %}

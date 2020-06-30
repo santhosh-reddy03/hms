@@ -1,20 +1,30 @@
 from application import app
 from flask import render_template, flash, redirect, request, url_for, jsonify, session
 from sqlalchemy import text
-from application.forms import LoginForm, RegisterationForm,UpdateForm,DeleteForm,SearchForm
+from application.forms import LoginForm, RegisterationForm,UpdateForm,DeleteForm,SearchForm, GetUser
 from application import db
 from application.models import Patient
 from datetime import datetime
+
+
+
 from application.models import Userstore
-from werkzeug.datastructures import MultiDict
+from application.models import Medicine
+
+
 
 '''db.drop_all()
 db.create_all()
 db.session.add(Userstore(loginid='desk_executive', password='desk_executive', user_type='E'))
 db.session.add(Userstore(loginid='pharmacist', password='pharmacist', user_type='P'))
 db.session.add(Userstore(loginid='diagnostic', password='diagnostic', user_type='D'))
+db.session.add(Medicine(medicine_id=1,medicine_name='Paracetamol 650',quantity_available=100,price=10))
+db.session.add(Medicine(medicine_id=2,medicine_name='Paracetamol 250',quantity_available=100,price=34))
 db.session.commit()'''
 
+
+'''db.create_all() #this creates table if not existing and leaves created table as it is
+db.session.commit()'''
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -24,7 +34,7 @@ def login():
         if session['user_type'] == 'E':
             return redirect(url_for('create_patient'))
         elif session['user_type'] == 'P':
-            return "<h1>pharmacist</h1>"
+            return redirect(url_for('pharmacist'))
         elif session['user_type'] == 'D':
             return "<h1>diagnostic</h1>"
     form = LoginForm()
@@ -41,7 +51,7 @@ def login():
             if user_type[0] == 'E':
                 return redirect(url_for('create_patient'))
             elif user_type[0] == 'P':
-                return "<h1>pharmacist</h1>"
+                return redirect(url_for('pharmacist'))
             elif user_type[0] == 'D':
                 return "<h1>diagnostic</h1>"
     return render_template('login.html', form=form, title='Login')
@@ -217,3 +227,70 @@ def billing():
     else:
         flash('You are not logged in ', 'danger')
         return redirect(url_for('login'))
+
+
+
+
+
+@app.route("/pharm", methods=["GET", "POST"])
+def pharmacist():
+    if 'user_id' in session and session['user_type'] == 'P':
+        form = GetUser()
+        if form.validate_on_submit():
+            sql = text("SELECT medicine.medicine_name, medicine_track_data.issue_count,medicine.price  FROM medicine_track_data LEFT JOIN medicine ON "
+                       "medicine_track_data.medicine_id=medicine.medicine_id UNION SELECT medicine.medicine_name, "
+                       "medicine_track_data.issue_count,medicine.price  FROM medicine LEFT JOIN medicine_track_data ON "
+                       "medicine.medicine_id=medicine_track_data.medicine_id WHERE patient_id = :x")
+            rslt = db.engine.execute(sql, x=form.patient_id.data)
+            data = list(rslt)
+            sql1 = text("select patient_id, patient_name, age, address, admission_date from patients where patient_id = :x")
+            rslt1 = db.engine.execute(sql1, x=form.patient_id.data)
+            p_data = list(rslt1)
+            if p_data:
+                patient_data = p_data[0]
+                flash("Patient and medicine data fount", "success")
+                return render_template('pharma_details.html', data=data, title='Pharmacy', patient_data=patient_data)
+            else:
+                flash("Patient not found", "danger")
+                return redirect(url_for('pharmacist'))
+        return render_template('pharmacist.html', form=form, title="Pharmacist")
+    else:
+        flash('You are not logged in ', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route("/issue_meds/<int:patient_id>")
+def issue_meds(patient_id=0):
+    if 'user_id' in session and session['user_type'] == 'P':
+        return render_template('issue_meds.html', patient_id=patient_id)
+    else:
+        flash('You are not logged in ', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route('/addmeds/<int:patient_id>/<medicine_name>/<int:quantity>')
+def addmeds(patient_id=0, medicine_name='', quantity=0):
+    if patient_id:
+        sql = text("select medicine_id, medicine_name, quantity_available, price from medicine where medicine_name = :x")
+        rslt = db.engine.execute(sql, x=medicine_name)
+        med_data = list(rslt)
+        if med_data:
+            medicine_id = med_data[0][0]
+            medicinename = med_data[0][1]
+            quant = med_data[0][2]
+            price = med_data[0][3]
+            if int(quant) - quantity > 0:
+                db.session.add(MedicineCount(patient_id=patient_id, medicine_id=medicine_id, issue_count=quantity))
+                db.session.commit()
+                data = {"medicinename": medicinename, "price": price, "quant": quantity}
+                sql = text("update medicine set quantity_avilable = :x where medicine_name = :y")
+                db.engine.execute(sql, x=int(quant)-quantity, y=medicine_name)
+                return jsonify(data)
+            else:
+                flash("Medicine are less in quantity, Please enter lower number", "warning")
+                return jsonify({"error": "stock not available"})
+        else:
+            flash("Medicine doesn't exist", "danger")
+            return jsonify({"error": "medicine doesnt exist"})
+    else:
+        return redirect(url_for('pharmacist'))
