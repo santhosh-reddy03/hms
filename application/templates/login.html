@@ -1,9 +1,8 @@
 {% extends "layout.html" %}
 
 {% block content %}
-
  <fieldset>
-   <form class="form-horizontal" action = "" method = "POST">
+   <form class="form-horizontal" action="" method="POST">
      {{ form.csrf_token }} <!-- this is very important so that validate functions work in the view-->
      {{ render_field(form.login) }}
      {{ render_field(form.password ) }}

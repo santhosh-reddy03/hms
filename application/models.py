@@ -1,6 +1,8 @@
 from application import db
 
-#userstore model
+# userstore model
+
+
 class Userstore(db.Model):
     __tablename__ = 'userstore'
     loginid = db.Column(db.String(64), primary_key=True)
@@ -10,8 +12,8 @@ class Userstore(db.Model):
 
 class Patient(db.Model):
     __tablename__ = "patients"
-    patient_ssn = db.Column(db.Integer())
-    patient_id = db.Column(db.Integer(), unique=True,primary_key=True)
+    patient_ssn = db.Column(db.Integer(), unique=True)
+    patient_id = db.Column(db.Integer(), primary_key=True, index=True)
     patient_name = db.Column(db.String(64))
     age = db.Column(db.Integer())
     admission_date = db.Column(db.Date())
