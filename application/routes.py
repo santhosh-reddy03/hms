@@ -199,8 +199,10 @@ def search_patient():
 def view_patient():
     if 'user_id' in session and session['user_type'] == 'E':
         #code here
-        pass
-
+        rslt = db.engine.execute("SELECT patient_ssn,patient_name,age,address,admission_date,bed_type FROM patients WHERE status = 'ACTIVE' ")
+        patients = [row for row in rslt]
+        print(patients)
+        return render_template('patient_table.html', rows=patients,title='View Patients')
     else:
         flash('You are not logged in ', 'danger')
         return redirect(url_for('login'))
