@@ -3,7 +3,7 @@
 <div class="row justify-content-center col-auto border-top-0">
 <table id="medtable" class="table table-hover text-center">
     <thead>
-     <tr>
+     <tr class="table-warning">
         <th class="text-center">Medicine Name</th>
          <th class="text-center">Rate</th>
          <th class="text-center">Quantity</th>
@@ -47,10 +47,6 @@
                 newcell2.appendChild(newtext2);
                 newcell3.appendChild(newtext3);
                 newcell4.appendChild(newtext4);
-                //newrow.insertCell[0].innerHTML="<td>"+data.medicinename+"</td>";
-                //newrow.insertCell[1].innerHTML="<td>"+data.price+"</td>";
-                //newrow.insertCell[2].innerHTML="<td>"+data.quant+"</td>";
-                //newrow.insertCell[3].innerHTML = "<td>"+data.price*data.quant+"<td>";
             }else{
                     alert(data.error);
                 }
