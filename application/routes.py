@@ -23,7 +23,7 @@ def login():
         elif session['user_type'] == 'P':
             return redirect(url_for('pharmacist'))
         elif session['user_type'] == 'D':
-            return "<h1>diagnostic</h1>"
+            return redirect(url_for('diagnostics'))
     form = LoginForm()
     if form.validate_on_submit():
         sql = text("SELECT user_type FROM userstore WHERE loginid = :x AND password = :y")
@@ -40,7 +40,7 @@ def login():
             elif user_type[0] == 'P':
                 return redirect(url_for('pharmacist'))
             elif user_type[0] == 'D':
-                return "<h1>diagnostic</h1>"
+                return redirect(url_for('diagnostics'))
     return render_template('login.html', form=form, title='Login')
 
 
@@ -225,9 +225,7 @@ def pharmacist():
         form = GetUser()
         if form.validate_on_submit():
             sql = text("SELECT medicine.medicine_name, medicine_track_data.issue_count,medicine.price  FROM medicine_track_data LEFT JOIN medicine ON "
-                       "medicine_track_data.medicine_id=medicine.medicine_id UNION SELECT medicine.medicine_name, "
-                       "medicine_track_data.issue_count,medicine.price  FROM medicine LEFT JOIN medicine_track_data ON "
-                       "medicine.medicine_id=medicine_track_data.medicine_id WHERE patient_id = :x")
+                       "medicine_track_data.medicine_id=medicine.medicine_id WHERE patient_id = :x")
             rslt = db.engine.execute(sql, x=form.patient_id.data)
             data = list(rslt)
             sql1 = text("select patient_id, patient_name, age, address, admission_date from patients where patient_id = :x")
@@ -281,3 +279,49 @@ def addmeds(patient_id=0, medicine_name='', quantity=0):
             return jsonify({"error": "medicine doesnt exist"})
     else:
         return redirect(url_for('pharmacist'))
+
+
+@app.route('/diagnostics', methods=['GET', 'POST'])
+def diagnostics():
+    if 'user_id' in session and session['user_type'] == 'D':
+        form = GetUser()
+        if form.validate_on_submit():
+            sql = text("SELECT diagnostics.test_name, diagnostics.charge FROM patient_diagnostics LEFT JOIN diagnostics ON "
+                       "patient_diagnostics.diagnostics_conducted=diagnostics.diagnostics_id WHERE patient_id = :x")
+            rslt = db.engine.execute(sql, x=form.patient_id.data)
+            data = list(rslt)
+            sql1 = text("select patient_id, patient_name, age, address, admission_date, bed_type from patients where patient_id = :x")
+            rslt1 = db.engine.execute(sql1, x=form.patient_id.data)
+            p_data = list(rslt1)
+            if p_data:
+                patient_data = p_data[0]
+                flash("Patient and diagnostic data found", "success")
+                return render_template('diagnostic_details.html', data=data, title='Diagnostics', patient_data=patient_data)
+            else:
+                flash("Patient not found", "danger")
+                return redirect(url_for('diagnostics'))
+        return render_template('diagnostics.html', form=form, title="Diagnostics")
+    else:
+        flash('You are not logged in ', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route('/adddiags/<int:patient_id>/<diag_name>')
+def adddiags(patient_id=0, diag_name=''):
+    if patient_id:
+        sql = text("select diagnostics_id, test_name, charge from diagnostics where test_name = :x")
+        rslt = db.engine.execute(sql, x=diag_name)
+        diag_data = list(rslt)
+        if diag_data:
+            diagnostics_id = diag_data[0][0]
+            testname = diag_data[0][1]
+            charge = diag_data[0][2]
+            db.session.add(PatientDiagnostics(patient_id=patient_id, diagnostics_conducted=diagnostics_id))
+            db.session.commit()
+            data = {"testname": testname, "price": charge}
+            return jsonify(data)
+        else:
+            # flash("Medicine doesn't exist", "danger")
+            return jsonify({"error": "diagnostic test doesnt exist"})
+    else:
+        return redirect(url_for('diagnostics'))
