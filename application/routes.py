@@ -3,7 +3,7 @@ from flask import render_template, flash, redirect, request, url_for, jsonify, s
 from sqlalchemy import text
 from application.forms import LoginForm, GetUser, RegisterationForm, UpdateForm, DeleteForm, SearchForm
 from application import db
-from datetime import datetime
+from datetime import datetime, date
 from application.models import Userstore, Patient, Medicine, MedicineCount, Diagnostics, PatientDiagnostics
 
 # db.drop_all()
@@ -26,7 +26,7 @@ def login():
         elif session['user_type'] == 'P':
             return redirect(url_for('pharmacist'))
         elif session['user_type'] == 'D':
-            return "<h1>diagnostic</h1>"
+            return redirect(url_for('diagnostics'))
     form = LoginForm()
     if form.validate_on_submit():
         sql = text("SELECT user_type FROM userstore WHERE loginid = :x AND password = :y")
@@ -43,7 +43,7 @@ def login():
             elif user_type[0] == 'P':
                 return redirect(url_for('pharmacist'))
             elif user_type[0] == 'D':
-                return "<h1>diagnostic</h1>"
+                return redirect(url_for('diagnostics'))
     return render_template('login.html', form=form, title='Login')
 
 
@@ -135,7 +135,7 @@ def update_patient():
                         sql = text('UPDATE patients SET patient_name = :n, age = :ag, admission_date = :doa, bed_type = :bt, address = :ad, state = :s, '
                                    'city = :c  WHERE patient_ssn = :ssn AND status = :state')
                         db.engine.execute(sql, n=form.patient_name.data, ag=int(form.age.data), doa=form.doa.data, bt=form.bed_type.data,
-                                                 ad=form.address.data, s=form.state.data, c=form.city.data, ssn=form.patient_ssn.data, state='ACTIVE')
+                                          ad=form.address.data, s=form.state.data, c=form.city.data, ssn=form.patient_ssn.data, state='ACTIVE')
                         flash('Patient update initiated successfully', 'success')
                         return redirect(url_for('update_patient'))       # successful update
                     else:
@@ -165,7 +165,7 @@ def delete_patient():
                 if form.get.data:
                     set_details(form)   # populating fields and all are read only
 
-                elif form.delete.data and form.patient_name.data :          # to ensure get has been called
+                elif form.delete.data and form.patient_name.data:          # to ensure get has been called
                     sql = text('UPDATE patients SET status = "INACTIVE" WHERE patient_ssn = :ssn AND status = :state')
                     db.engine.execute(sql, ssn=form.patient_ssn.data, state='ACTIVE')
                     flash('Patient deletion initiated successfully', 'success')
@@ -188,7 +188,7 @@ def search_patient():
             rslt = db.engine.execute(sql, x=form.patient_ssn.data, state='ACTIVE')
             name = [row[0] for row in rslt]
             if len(name) == 0:
-                flash('Patient not found !','warning')
+                flash('Patient not found !', 'warning')
             else:
                 set_details(form, ssn_flag=False)                   # ssn is kept as changeable
         return render_template('search_patient.html', form=form, title='Search Patient Details')
@@ -211,12 +211,53 @@ def view_patient():
         return redirect(url_for('login'))
 
 
-@app.route('/billing')
+@app.route('/billing', methods=['GET', 'POST'])
 def billing():
     if 'user_id' in session and session['user_type'] == 'E':
-        #code here
-        pass
-
+        # code here
+        form = GetUser()
+        if form.validate_on_submit():
+            bed_price = {'General ward': '2000', 'Single room': '8000', 'Semi sharing': '4000'}
+            patient_id = form.patient_id.data
+            sql1 = text("select status, patient_id, patient_name, age, address, admission_date, bed_type from patients where patient_id = :x")
+            rslt1 = db.engine.execute(sql1, x=patient_id)
+            p_data = list(rslt1)
+            if p_data:
+                if p_data[0][0] == 'ACTIVE':
+                    bill = text("SELECT medicine.medicine_name, medicine_track_data.issue_count,medicine.price, "
+                                "(medicine.price * medicine_track_data.issue_count) AS Amount FROM medicine_track_data LEFT JOIN medicine ON "
+                                "medicine_track_data.medicine_id=medicine.medicine_id WHERE patient_id = :x ")
+                    rslt = db.engine.execute(bill, x=patient_id)
+                    data = list(rslt)
+                    medicine_total_bill = 0
+                    if data:
+                        for val in data:
+                            medicine_total_bill += val[3]
+                    bill2 = text("SELECT diagnostics.test_name AS 'Name of the test', diagnostics.charge AS Amount FROM diagnostics "
+                                 "LEFT OUTER JOIN  patient_diagnostics ON diagnostics.diagnostics_id=patient_diagnostics.diagnostics_conducted "
+                                 "WHERE patient_id = :x ")
+                    rslt2 = db.engine.execute(bill2, x=patient_id)
+                    data2 = list(rslt2)
+                    diagnostics_total_bill = 0
+                    if data2:
+                        for val in data2:
+                            diagnostics_total_bill += val[1]
+                    today = date.today()
+                    join_date = datetime.strptime(p_data[0][5], '%Y-%m-%d').date()
+                    n_days = (today-join_date).days
+                    total_charge = [medicine_total_bill, diagnostics_total_bill, n_days*int(bed_price['{}'.format(p_data[0][6])])]
+                    # print(total_charge)
+                    print({"meddata": data, "patient_data": p_data[0], "diag_data": data2, "bill": total_charge})
+                    return render_template('billing_details.html', meddata=data, patient_data=p_data[0], diagdata=data2, bill=total_charge, days=n_days,
+                                           l_day=today, title='Patient Billing')
+                else:
+                    flash("Patient already discharged", "warning")
+                    return redirect(url_for('billing'))
+            else:
+                flash("Patient not found", "warning")
+                return redirect(url_for('billing'))
+        else:
+            return render_template('billing.html', form=form, title='Patient Billing')
     else:
         flash('You are not logged in ', 'danger')
         return redirect(url_for('login'))
@@ -228,9 +269,7 @@ def pharmacist():
         form = GetUser()
         if form.validate_on_submit():
             sql = text("SELECT medicine.medicine_name, medicine_track_data.issue_count,medicine.price  FROM medicine_track_data LEFT JOIN medicine ON "
-                       "medicine_track_data.medicine_id=medicine.medicine_id UNION SELECT medicine.medicine_name, "
-                       "medicine_track_data.issue_count,medicine.price  FROM medicine LEFT JOIN medicine_track_data ON "
-                       "medicine.medicine_id=medicine_track_data.medicine_id WHERE patient_id = :x")
+                       "medicine_track_data.medicine_id=medicine.medicine_id WHERE patient_id = :x")
             rslt = db.engine.execute(sql, x=form.patient_id.data)
             data = list(rslt)
             sql1 = text("select patient_id, patient_name, age, address, admission_date from patients where patient_id = :x")
@@ -284,3 +323,49 @@ def addmeds(patient_id=0, medicine_name='', quantity=0):
             return jsonify({"error": "medicine doesnt exist"})
     else:
         return redirect(url_for('pharmacist'))
+
+
+@app.route('/diagnostics', methods=['GET', 'POST'])
+def diagnostics():
+    if 'user_id' in session and session['user_type'] == 'D':
+        form = GetUser()
+        if form.validate_on_submit():
+            sql = text("SELECT diagnostics.test_name, diagnostics.charge FROM patient_diagnostics LEFT JOIN diagnostics ON "
+                       "patient_diagnostics.diagnostics_conducted=diagnostics.diagnostics_id WHERE patient_id = :x")
+            rslt = db.engine.execute(sql, x=form.patient_id.data)
+            data = list(rslt)
+            sql1 = text("select patient_id, patient_name, age, address, admission_date, bed_type from patients where patient_id = :x")
+            rslt1 = db.engine.execute(sql1, x=form.patient_id.data)
+            p_data = list(rslt1)
+            if p_data:
+                patient_data = p_data[0]
+                flash("Patient and diagnostic data found", "success")
+                return render_template('diagnostic_details.html', data=data, title='Diagnostics', patient_data=patient_data)
+            else:
+                flash("Patient not found", "danger")
+                return redirect(url_for('diagnostics'))
+        return render_template('diagnostics.html', form=form, title="Diagnostics")
+    else:
+        flash('You are not logged in ', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route('/adddiags/<int:patient_id>/<diag_name>')
+def adddiags(patient_id=0, diag_name=''):
+    if patient_id:
+        sql = text("select diagnostics_id, test_name, charge from diagnostics where test_name = :x")
+        rslt = db.engine.execute(sql, x=diag_name)
+        diag_data = list(rslt)
+        if diag_data:
+            diagnostics_id = diag_data[0][0]
+            testname = diag_data[0][1]
+            charge = diag_data[0][2]
+            db.session.add(PatientDiagnostics(patient_id=patient_id, diagnostics_conducted=diagnostics_id))
+            db.session.commit()
+            data = {"testname": testname, "price": charge}
+            return jsonify(data)
+        else:
+            # flash("Medicine doesn't exist", "danger")
+            return jsonify({"error": "diagnostic test doesnt exist"})
+    else:
+        return redirect(url_for('diagnostics'))

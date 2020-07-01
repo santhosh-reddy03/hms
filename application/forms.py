@@ -21,8 +21,9 @@ class RegisterationForm(FlaskForm):
     patient_name = StringField("Patient Name*", validators=[InputRequired(), Regexp(regex='^[A-Za-z]+$', message='Name should contain alphabets only')],
                                render_kw={'Placeholder': 'Patient Name'})
     age = IntegerField('Age*', validators=[InputRequired()], render_kw={'Placeholder': 'Patient Id'})
-    doa = DateField('Date of Admission*', validators=[InputRequired()], format='%Y-%m-%d')
-    bed_type = SelectField("Bed Type*", validators=[InputRequired()], choices=[('GW', 'General Ward'), ('SS', 'Semi Sharing'), ('SR', 'Single Room')],
+    doa = DateField('Date of Admission*', validators=[InputRequired()], format='%Y-%m-%d', render_kw={'Placeholder': "yyyy-mm-dd"})
+    bed_type = SelectField("Bed Type*", validators=[InputRequired()], choices=[('General ward', 'General Ward'), ('Semi sharing', 'Semi Sharing'),
+                                                                               ('Single room', 'Single Room')],
                            render_kw={'Placeholder': 'Select'})
     address = TextAreaField("Address*", validators=[InputRequired()], render_kw={'Placeholder': 'Enter Address'})
     state = StringField("State*", validators=[InputRequired()], render_kw={'Placeholder': 'State'})
