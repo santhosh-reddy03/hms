@@ -11,7 +11,7 @@
       {{ form.patient_id(class='form-control') }}
       {% if form.patient_id.errors %}
       <ul class=errors>
-        {% for error in field.errors %}
+        {% for error in form.patient_id.errors %}
         <li style="color:red;">{{ error }}</li>
         {% endfor %}
       </ul>
