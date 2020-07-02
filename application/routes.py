@@ -67,13 +67,17 @@ def create_patient():
             address = form.address.data
             state = form.state.data
             city = form.city.data
-            sql = text("SELECT  patient_ssn FROM patients WHERE patient_ssn = :x ")
+            sql = text("SELECT patient_ssn, status FROM patients WHERE patient_ssn = :x ")
             rslt = db.engine.execute(sql, x=ssn)
-            items = [row[0] for row in rslt]
-            if not len(items):
+            items = [row[1] for row in rslt]
+            if not len(items) or items[0] == 'INACTIVE':
                 flash('Patient creation initiated successfully', 'success')
-                db.session.add(Patient(patient_ssn=ssn, patient_name=name, age=age, admission_date=doa, bed_type=bed, address=address, city=city, state=state,
-                                       status="ACTIVE"))
+                if items[0] == 'INACTIVE':   # This ensures that only one entry exists per patient
+                    Patient.query.filter_by(patient_ssn=ssn).update(dict(patient_name=name, age=age, admission_date=doa, bed_type=bed, address=address,
+                                                                         city=city, state=state, status="ACTIVE"))
+                else:
+                    db.session.add(Patient(patient_ssn=ssn, patient_name=name, age=age, admission_date=doa, bed_type=bed, address=address, city=city,
+                                           state=state, status="ACTIVE"))
                 db.session.commit()
                 return redirect(url_for('create_patient'))
             else:
@@ -85,11 +89,11 @@ def create_patient():
 
 
 def set_details(form, ssn_flag=True, kw_flags=True):
-    sql = text("Select *  From patients WHERE patient_ssn = :x ")
-    rslt = db.engine.execute(sql, x=form.patient_ssn.data)
+    sql = text("Select *  From patients WHERE patient_id = :x ")
+    rslt = db.engine.execute(sql, x=form.patient_id.data)
     # print(rslt)
     details = [row for row in rslt]
-    form.patient_ssn.render_kw = {"readonly": ssn_flag}
+    form.patient_id.render_kw = {"readonly": ssn_flag}
     form.patient_name.data = details[0][2]
     # for integerfield and datefield values has to be rendered exclusively
     form.age.render_kw = {'value': details[0][3], 'readonly': kw_flags}
@@ -111,8 +115,8 @@ def update_patient():
         # code here
         form = UpdateForm()
         if form.validate_on_submit():
-            sql = text("SELECT  patient_ssn FROM patients WHERE patient_ssn = :x ")
-            rslt = db.engine.execute(sql, x=form.patient_ssn.data)
+            sql = text("SELECT  patient_ssn FROM patients WHERE patient_id = :x AND status = :state")
+            rslt = db.engine.execute(sql, x=form.patient_id.data, state='ACTIVE')
             name = [row[0] for row in rslt]
             if len(name) == 0:
                 flash('Patient not found !', 'warning')
@@ -132,7 +136,7 @@ def update_patient():
                         sql = text('UPDATE patients SET patient_name = :n, age = :ag, admission_date = :doa, bed_type = :bt, address = :ad, state = :s, '
                                    'city = :c  WHERE patient_ssn = :ssn AND status = :state')
                         db.engine.execute(sql, n=form.patient_name.data, ag=int(form.age.data), doa=form.doa.data, bt=form.bed_type.data,
-                                          ad=form.address.data, s=form.state.data, c=form.city.data, ssn=form.patient_ssn.data, state='ACTIVE')
+                                          ad=form.address.data, s=form.state.data, c=form.city.data, ssn=form.patient_id.data, state='ACTIVE')
                         flash('Patient update initiated successfully', 'success')
                         return redirect(url_for('update_patient'))       # successful update
                     else:
@@ -141,6 +145,11 @@ def update_patient():
                 else:
                     flash('Please fill the fields using GET button then click on UPDATE button', 'warning')
                     return redirect(url_for('update_patient'))  # confirming the fields are filled using get
+        elif form.patient_name.data:  # This is a necessity as when invalid comes it field gets locked
+            for field in form:
+                if field.name != 'update' and field.name != 'get':
+                    field.render_kw = {"readonly": False}
+            form.patient_id.render_kw = {"readonly": True}
         return render_template('update_patient.html', form=form, title='Update Patient Details')
     else:
         flash('You are not logged in ', 'danger')
@@ -153,8 +162,8 @@ def delete_patient():
         # code here
         form = DeleteForm()
         if form.validate_on_submit():
-            sql = text("SELECT  patient_ssn FROM patients WHERE patient_ssn = :x ")
-            rslt = db.engine.execute(sql, x=form.patient_ssn.data)
+            sql = text("SELECT  patient_ssn FROM patients WHERE patient_id = :x AND status =:state")
+            rslt = db.engine.execute(sql, x=form.patient_id.data, state='ACTIVE')
             name = [row[0] for row in rslt]
             if len(name) == 0:
                 flash('Patient not found !', 'warning')
@@ -163,8 +172,15 @@ def delete_patient():
                     set_details(form)   # populating fields and all are read only
 
                 elif form.delete.data and form.patient_name.data:          # to ensure get has been called
-                    sql = text('UPDATE patients SET status = "INACTIVE" WHERE patient_ssn = :ssn AND status = :state')
-                    db.engine.execute(sql, ssn=form.patient_ssn.data, state='ACTIVE')
+                    sql = text('UPDATE patients SET status = "INACTIVE" WHERE patient_id = :id AND status = :state')
+                    db.engine.execute(sql, id=form.patient_id.data, state='ACTIVE')
+                    # removing user specific data from patient_diagnostic_table
+                    sql = text('DELETE FROM patient_diagnostics WHERE patient_id =:id ')
+                    db.engine.execute(sql, id=form.patient_id.data)
+                    # removing user specific data from medicine_track_table
+                    sql = text('DELETE FROM medicine_track_data WHERE patient_id =:id ')
+                    db.engine.execute(sql, id=form.patient_id.data)
+                    db.session.commit()
                     flash('Patient deletion initiated successfully', 'success')
                     return redirect(url_for('delete_patient'))
                 else:
@@ -181,13 +197,13 @@ def search_patient():
         # code here
         form = SearchForm()
         if form.validate_on_submit():
-            sql = text("SELECT  patient_ssn FROM patients WHERE patient_ssn = :x AND status = :state")
-            rslt = db.engine.execute(sql, x=form.patient_ssn.data, state='ACTIVE')
+            sql = text("SELECT  patient_ssn FROM patients WHERE patient_id = :x AND status = :state")
+            rslt = db.engine.execute(sql, x=form.patient_id.data, state='ACTIVE')
             name = [row[0] for row in rslt]
             if len(name) == 0:
                 flash('Patient not found !', 'warning')
             else:
-                set_details(form, ssn_flag=False)                   # ssn is kept as changeable
+                set_details(form, ssn_flag=False)  # ssn is kept as changeable
         return render_template('search_patient.html', form=form, title='Search Patient Details')
     else:
         flash('You are not logged in ', 'danger')
@@ -211,7 +227,9 @@ def view_patient():
 @app.route('/billing', methods=['GET', 'POST'])
 def billing():
     if 'user_id' in session and session['user_type'] == 'E':
-        # code here
+        # Assumption no pre booking is allowed
+        # After billing the page should be discharged automatically and the patient has be to made inactive
+        # Also data from other tables has to be removed
         form = GetUser()
         if form.validate_on_submit():
             bed_price = {'General ward': '2000', 'Single room': '8000', 'Semi sharing': '4000'}
@@ -243,8 +261,6 @@ def billing():
                     join_date = datetime.strptime(p_data[0][5], '%Y-%m-%d').date()
                     n_days = (today-join_date).days
                     total_charge = [medicine_total_bill, diagnostics_total_bill, n_days*int(bed_price['{}'.format(p_data[0][6])])]
-                    # print(total_charge)
-                    print({"meddata": data, "patient_data": p_data[0], "diag_data": data2, "bill": total_charge})
                     return render_template('billing_details.html', meddata=data, patient_data=p_data[0], diagdata=data2, bill=total_charge, days=n_days,
                                            l_day=today, title='Patient Billing')
                 else:
@@ -305,7 +321,7 @@ def addmeds(patient_id=0, medicine_name='', quantity=0):
             medicinename = med_data[0][1]
             quant = med_data[0][2]
             price = med_data[0][3]
-            if int(quant) - quantity > 0:
+            if int(quant) - quantity >= 0:
                 db.session.add(MedicineCount(patient_id=patient_id, medicine_id=medicine_id, issue_count=quantity))
                 db.session.commit()
                 data = {"medicinename": medicinename, "price": price, "quant": quantity}
@@ -313,7 +329,7 @@ def addmeds(patient_id=0, medicine_name='', quantity=0):
                 db.engine.execute(sql, x=int(quant)-quantity, y=medicine_name)
                 return jsonify(data)
             else:
-                flash("Medicine are less in quantity, Please enter lower number", "warning")
+                # flash("Medicine are less in quantity, Please enter lower number", "warning")
                 return jsonify({"error": "stock not available"})
         else:
             # flash("Medicine doesn't exist", "danger")

@@ -2,34 +2,31 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
-
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="static/styles.css">
-  <!--bootstrap css-->
-   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/styles.css">
+    <!--bootstrap css-->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Hospital XYZ</title>
+  </head>
+  <body style='background-color: #F0F8FF;'>
 
 
+    <div class="container-fluid clearfix  fixed-top px-0" style="background-color: #111111;height:149px;">
 
-</head>
-<body>
-  <div class="card " style="height: 85rem;">
-  <div class="card-header text-right" style="font-weight: bold;color: #3A0CA3;background-color: #4361EE;">
-    <h1 class="display-2">Hospital XYZ</h1>
+        <div class="float-right pb-3 pt-5 pr-3" style="font-size: 50px;font-weight: 900;color: #F0F8FF;"><i class="fa fa-plus-square" style="font-size:48px;color:lightgreen"></i> <b>XYZ HOSPITAL</b> </div>
+          <ul class="nav nav-fill w-100 rounded-lg" style="background-color: #7209B7;">
+            {% block navs %}
+            {% endblock %}
+            </ul>
+    </div>
 
-  </div>
-<ul class="nav nav-fill" style="background-color: #7209B7;">
-    {% block navs %}
-    {% endblock %}
-    </ul>
 
-  <div class="card-body text-left" style="background-color: #F0F8FF;">
-
-    <div class="container">
+    <div class="container-fluid  mx-auto"style="margin-top: 170px;">
       <legend class=" text-center" style="font-size: 30px;"> {{ title }} </legend> <!--title of the page-->
-       {% for catg,msg in get_flashed_messages(with_categories=true) %}
+       {% for catg,msg in get_flashed_messages(with_categories=true) %}<!--This gives the flash messages-->
         <div class="alert alert-{{ catg }}" role="alert">
           <button type="button" class="close" data-dismiss="alert">&times;</button>
           {{ msg }}
@@ -38,15 +35,11 @@
         {% block content %}
         {% endblock %}
     </div>
-  </div>
 
-</div>
+    <!--bootstrap script links-->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
-
-<!--bootstrap script links-->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-
-</body>
+  </body>
 </html>

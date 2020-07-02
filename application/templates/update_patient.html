@@ -2,9 +2,22 @@
 
 {% block content %}
 <fieldset>
-  <form  class="form-horizontal" action = "" method = "POST">
+  <form  action = "" method = "POST">
   {{ form.csrf_token }} <!-- this is very important so that validate functions work in the view-->
-    {{ render_field(form.patient_ssn) }}
+    <div class ="form-group row" >
+      <label for="patient_id" class="col-lg-2 control-label justify-content-center" style="font-size :20px;">Patient ID</label>
+      <div class="col-lg-4">
+        {{ form.patient_id(class='form-control') }}
+        {% if form.patient_id.errors %}
+        <ul class=errors>
+          {% for error in form.patient_id.errors %}
+          <li style="color:red;">{{ error }}</li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      <input class="btn btn-primary btn-lg col-lg-1" name="{{ form.get.name }}" type="submit" value="{{ form.get.label.text }}">
+    </div>
     {{ render_field(form.patient_name) }}
     {{ render_field(form.age) }}
     {{ render_field(form.doa) }}
@@ -12,7 +25,6 @@
     {{ render_field(form.address) }}
     {{ render_field(form.state) }}
     {{ render_field(form.city) }}
-    <input class="btn btn-primary btn-lg center-block" name="{{ form.get.name }}" type="submit" value="{{ form.get.label.text }}">
     <input class="btn btn-primary btn-lg center-block"  name="{{ form.update.name }}" type="submit" value="{{ form.update.label.text }}">
 
     </form>
