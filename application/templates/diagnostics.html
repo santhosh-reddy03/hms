@@ -1,7 +1,7 @@
 {% extends "pharma_layout.html" %}
 {% block content %}
 <fieldset>
-   <form class="form-horizontal" action="" method="POST">
+   <form class action="" method="POST">
      {{ form.csrf_token }} <!-- this is very important so that validate functions work in the view-->
      {{ render_field(form.patient_id) }}
      <input id="submit" class="btn btn-primary btn-lg center-block" name="{{ form.submit.name }}" type="submit" value="{{ form.submit.label.text }}">
