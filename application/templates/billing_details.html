@@ -1,7 +1,7 @@
 {% extends "desk_executive_layout.html" %}
 
 {% block content %}
-<div class="row justify-content-center col-auto border-top-0">
+<div class="justify-content-center col-auto border-top-0">
 <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
@@ -27,7 +27,7 @@
     
     <br><br>
     {% if meddata %}
-    <h3 align="center">Pharmacy charges</h3>
+    <h3 class="text-center">Pharmacy charges</h3>
     <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
@@ -49,14 +49,11 @@
         <tr><td align="right" colspan="3"><b>Bill of Pharmacy</b></td>   <td><b>Rs.{{bill[0]}}</b></td></tr>
     </tbody>
     </table>
-    
- {% else %}
-    <h3 align="center">No meds were issued</h3>
     <br>
     {% endif %}
-    <br><br>
+    <br>
     {% if diagdata %}
-    <h3 align="center">Diagnostics Charges</h3>
+    <h3 class="text-center">Diagnostics Charges</h3>
 <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
@@ -74,15 +71,11 @@
         <tr><td align="right"><b>Bill of Diagnostics</b></td>  <td><b>Rs.{{bill[1]}}</b></td></tr>
     </tbody>
     </table>
-    
- {% else %}
-    <h3 align="center">No Diagnostics were Conducted</h3>
     <br>
     {% endif %}
     <br>
-    <br>
-    <h4><b>Grand Total</b>    <b>Rs.{{bill[0] + bill[1]+bill[2]}}</b></h4>
 </div>
+<h4 align="center"><b>Grand Total</b>    <b>Rs.{{bill[0] + bill[1]+bill[2]}}</b></h4>
 
-<a href="{{url_for('delete_patient')}}"><button class="btn btn-primary center-block">Confirm</button></a>
+<a href="/del_patient/{{ patient_data[1] }}"><button class="btn btn-primary center-block">Confirm</button></a>
 {% endblock %}

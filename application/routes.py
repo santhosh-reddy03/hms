@@ -304,7 +304,7 @@ def pharmacist():
 @app.route("/issue_meds/<int:patient_id>")
 def issue_meds(patient_id=0):
     if 'user_id' in session and session['user_type'] == 'P':
-        return render_template('issue_meds.html', patient_id=patient_id)
+        return render_template('issue_meds.html', patient_id=patient_id, title="Issue medicine")
     else:
         flash('You are not logged in ', 'danger')
         return redirect(url_for('login'))
@@ -382,3 +382,43 @@ def adddiags(patient_id=0, diag_name=''):
             return jsonify({"error": "diagnostic test doesnt exist"})
     else:
         return redirect(url_for('diagnostics'))
+
+
+@app.route('/del_patient/<int:patient_id>', methods=['GET'])
+def del_patient(patient_id=0):
+    patient_id = patient_id
+    if patient_id:
+        sql = text('UPDATE patients SET status = "INACTIVE" WHERE patient_id = :id AND status = :state')
+        db.engine.execute(sql, id=patient_id, state='ACTIVE')
+        # removing user specific data from patient_diagnostic_table
+        sql = text('DELETE FROM patient_diagnostics WHERE patient_id =:id ')
+        db.engine.execute(sql, id=patient_id)
+        # removing user specific data from medicine_track_table
+        sql = text('DELETE FROM medicine_track_data WHERE patient_id =:id ')
+        db.engine.execute(sql, id=patient_id)
+        db.session.commit()
+        flash("Patient discharged", "success")
+        return redirect(url_for('billing'))
+    else:
+        return redirect(url_for('billing'))
+
+
+@app.route('/pharmacy/<int:patient_id>', methods=['GET'])
+def pharmacy(patient_id=0):
+    if 'user_id' in session and session['user_type'] == 'P':
+        if patient_id:
+            sql = text("SELECT medicine.medicine_name, medicine_track_data.issue_count,medicine.price  FROM medicine_track_data LEFT JOIN medicine ON "
+                       "medicine_track_data.medicine_id=medicine.medicine_id WHERE patient_id = :x")
+            rslt = db.engine.execute(sql, x=patient_id)
+            data = list(rslt)
+            sql1 = text("select patient_id, patient_name, age, address, admission_date from patients where patient_id = :x")
+            rslt1 = db.engine.execute(sql1, x=patient_id)
+            p_data = list(rslt1)
+            patient_data = p_data[0]
+            flash("Patient and medicine data found", "success")
+            return render_template('pharma_details.html', data=data, title='Pharmacy', patient_data=patient_data)
+        else:
+            return redirect(url_for('pharmacist'))
+    else:
+        flash('You are not logged in ', 'danger')
+        return redirect(url_for('login'))
