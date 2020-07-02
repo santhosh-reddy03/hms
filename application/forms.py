@@ -1,11 +1,36 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, IntegerField, SelectField, DateField, TextAreaField
-from wtforms.validators import InputRequired, NumberRange, Optional, Regexp
+from wtforms.validators import InputRequired, NumberRange, Optional, Regexp, Length
+from wtforms import ValidationError
 
+import re
 
 class LoginForm(FlaskForm):
+    def password_validator(form, field):
+        password =field.data
+        while True:
+            if (len(password)<10):
+                raise ValidationError('Password must have at least 10 characters ')
+                break
+            elif not re.search("[a-z]", password): #lower case check
+                raise ValidationError('Password must contain a lower case character ')
+                break
+            elif not re.search("[A-Z]", password): #uppercase check
+                raise ValidationError('Password must contain a upper case character ')
+                break
+            elif not re.search("[0-9]", password):  #digit check
+                raise ValidationError('Password must contain a digit ')
+                break
+            elif not re.search("[*.!\@\$%^&:;<>,.?/~_+-=|\(\)\{\}\[\]]", password): #special character check
+                raise ValidationError('Password must contain a special character ')
+                break
+            elif re.search("\s", password):
+                raise ValidationError('Password should not contains space character ')
+                break
+            else:
+                break
     login = StringField("Login Id", validators=[InputRequired()], render_kw={'Placeholder': 'Login Id'})
-    password = PasswordField("Password", validators=[InputRequired()], render_kw={'Placeholder': 'Password'})
+    password = PasswordField("Password", validators=[InputRequired(),password_validator], render_kw={'Placeholder': 'Password'})
     submit = SubmitField("Login")
 
 
