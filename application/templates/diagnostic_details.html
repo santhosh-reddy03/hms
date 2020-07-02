@@ -1,12 +1,12 @@
 {% extends "pharma_layout.html" %}
 {% block content %}
-<div class="row justify-content-center col-auto border-top-0">
+<div class=" justify-content-center col-auto border-top-0">
 <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
-        <th class="text-center">Patient ID</th>
-        <th class="text-center">Patient Name</th>
-        <th class="text-center">Age</th>
+        <th class="text-center ">Patient ID</th>
+        <th class="text-center ">Patient Name</th>
+        <th class="text-center ">Age</th>
         <th class="text-center">Address</th>
         <th class="text-center">Date of admission</th>
         <th class="text-center">Bed Type</th>
@@ -19,9 +19,9 @@
     {% endfor %}
     </tr>
     </tbody>
-</table><br>
+</table>
     {% if data %}
-    <h3>Diagnostics Conducted</h3>
+    <h3 class='text-center'>Diagnostics Conducted</h3>
 <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
@@ -39,10 +39,10 @@
     </tbody>
     </table>
  {% else %}
-    <h3>No Diagnostics were Conducted</h3>
+    <h3 class='text-center'>No Diagnostics were Conducted </h3>
     {% endif %}
     <br>
-    <h3>Add Diagnostics</h3>
+    <h3 class='text-center'>Add Diagnostics</h3>
 <table id="diagtable" class="table table-hover text-center">
     <thead>
      <tr class="table-warning">
@@ -54,10 +54,10 @@
 </table>
 <!-- <input type="text" id="diagname" placeholder="Diagnostics Name" required> -->
 <div class="form_block span2"><br>
-<button class="btn btn-primary btn-xs center-block" onclick="insrow({{patient_data[0]}})">Add</button> <br>
+<button class="btn btn-primary  center-block" onclick="insrow({{patient_data[0]}})">Add</button> <br>
     <br>
 
-    <button class="btn btn-primary center-block" onClick="window.location.reload();">Update</button>
+    <button class="btn btn-primary btn-lg center-block" onClick="window.location.reload();">Update</button>
 </div>
 </div>
 <script>

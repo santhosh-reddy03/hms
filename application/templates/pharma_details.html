@@ -1,6 +1,6 @@
 {% extends "pharma_layout.html" %}
 {% block content %}
-<div class="row justify-content-center col-auto border-top-0">
+<div class="justify-content-center col-auto border-top-0">
 <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
@@ -23,7 +23,7 @@
 
 
 {% if data %}
-    <h3>Medicines issued</h3>
+    <h3 class='text-center'>Medicines issued</h3>
 <table class="table table-hover text-center">
     <thead>
     <tr class="table-warning">
@@ -45,7 +45,7 @@
     </tbody>
     </table>
  {% else %}
-    <h3>No meds were issued</h3>
+    <h3 class='text-center'>No meds were issued</h3>
     {% endif %}
 </div>
     <a href="{{ 'issue_meds/%s'%patient_data[0] }}"><button class="btn btn-primary center-block">Issue medicines</button></a>
