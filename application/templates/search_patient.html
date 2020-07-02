@@ -8,7 +8,7 @@
   <div class ="form-group row" >
     <label for="patient_id" class="col-lg-2 control-label justify-content-center" style="font-size :20px;">Patient ID</label>
     <div class="col-lg-4">
-      <input placeholder="Patient  Id" class="form-control" id="patient_id" name="patient_id" required="" type="text" value="">
+      {{ form.patient_id(class='form-control') }}
       {% if form.patient_id.errors %}
       <ul class=errors>
         {% for error in field.errors %}

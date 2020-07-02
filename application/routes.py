@@ -71,7 +71,7 @@ def create_patient():
             state = form.state.data
             city = form.city.data
             sql = text("SELECT  patient_ssn,status FROM patients WHERE patient_ssn = :x ")
-            rslt = db.engine.execute(sql, x=ssn,state='ACTIVE')
+            rslt = db.engine.execute(sql, x=ssn)
             items = [row[1] for row in rslt]
             if not len(items) or items[0] =='INACTIVE':
 
