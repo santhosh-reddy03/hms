@@ -8,9 +8,6 @@ from application.models import Userstore, Patient, Medicine, MedicineCount, Diag
 
 # db.drop_all()
 # db.create_all()
-# db.session.add(Userstore(loginid='desk_executive', password='desk_executive', user_type='E'))
-# db.session.add(Userstore(loginid='pharmacist', password='pharmacist', user_type='P'))
-# db.session.add(Userstore(loginid='diagnostic', password='diagnostic', user_type='D'))
 # db.session.commit()
 
 
@@ -101,7 +98,6 @@ def set_details(form, ssn_flag=True, kw_flags=True):
     obj = datetime.strptime(details[0][4], '%Y-%m-%d').date()
     form.doa.render_kw = {'value': obj, 'readonly': kw_flags}
     form.doa.data = obj
-    # obj1=obj.strftime('%Y-%m-%d')
     form.bed_type.data = details[0][5]
     form.address.data = details[0][6]
     form.state.data = details[0][7]
@@ -202,6 +198,7 @@ def search_patient():
             name = [row[0] for row in rslt]
             if len(name) == 0:
                 flash('Patient not found !', 'warning')
+                return redirect(url_for('search_patient'))
             else:
                 set_details(form, ssn_flag=False)  # ssn is kept as changeable
         return render_template('search_patient.html', form=form, title='Search Patient Details')
@@ -216,7 +213,6 @@ def view_patient():
         # code here
         rslt = db.engine.execute("SELECT patient_ssn,patient_name,age,address,admission_date,bed_type FROM patients WHERE status = 'ACTIVE' ")
         patients = [row for row in rslt]
-        # print(patients)
         return render_template('patient_table.html', rows=patients, title='View Patients')
 
     else:
@@ -228,8 +224,6 @@ def view_patient():
 def billing():
     if 'user_id' in session and session['user_type'] == 'E':
         # Assumption no pre booking is allowed
-        # After billing the page should be discharged automatically and the patient has be to made inactive
-        # Also data from other tables has to be removed
         form = GetUser()
         if form.validate_on_submit():
             bed_price = {'General ward': '2000', 'Single room': '8000', 'Semi sharing': '4000'}
@@ -329,10 +323,8 @@ def addmeds(patient_id=0, medicine_name='', quantity=0):
                 db.engine.execute(sql, x=int(quant)-quantity, y=medicine_name)
                 return jsonify(data)
             else:
-                # flash("Medicine are less in quantity, Please enter lower number", "warning")
                 return jsonify({"error": "stock not available"})
         else:
-            # flash("Medicine doesn't exist", "danger")
             return jsonify({"error": "medicine doesnt exist"})
     else:
         return redirect(url_for('pharmacist'))
@@ -378,7 +370,6 @@ def adddiags(patient_id=0, diag_name=''):
             data = {"testname": testname, "price": charge}
             return jsonify(data)
         else:
-            # flash("Medicine doesn't exist", "danger")
             return jsonify({"error": "diagnostic test doesnt exist"})
     else:
         return redirect(url_for('diagnostics'))
