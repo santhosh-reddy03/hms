@@ -18,7 +18,11 @@
 <input type="number" id="count" placeholder="Quantity" required><br>
 <button class="btn btn-primary btn-xs" onclick="insrow({{patient_id}})">Add</button>
 </div><br><br>
-    <a href="/pharmacy/{{patient_id}}"><button type="submit" class="btn btn-primary center-block">Updated Medicines</button></a>
+<form  action="{{url_for('pharmacy')}}" method="post">
+    <!-- <a href="{{ url_for('pharmacy'), patient_id}}"></a> -->
+    <input type="hidden" name="patient_id" value="{{patient_id}}">
+    <button type="submit" class="btn btn-primary center-block">Updated Medicines</button>
+</form>
 <script>
     function insrow(patient_id){
     console.log(1);

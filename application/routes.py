@@ -403,9 +403,10 @@ def del_patient(patient_id=0):
         return redirect(url_for('billing'))
 
 
-@app.route('/pharmacy/<int:patient_id>', methods=['GET'])
-def pharmacy(patient_id=0):
+@app.route('/pharmacy', methods=['POST'])
+def pharmacy():
     if 'user_id' in session and session['user_type'] == 'P':
+        patient_id = request.values.get("patient_id")
         if patient_id:
             sql = text("SELECT medicine.medicine_name, medicine_track_data.issue_count,medicine.price  FROM medicine_track_data LEFT JOIN medicine ON "
                        "medicine_track_data.medicine_id=medicine.medicine_id WHERE patient_id = :x")
